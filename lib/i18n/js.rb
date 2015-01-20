@@ -105,8 +105,15 @@ module I18n
 
       File.open(file, "w+") do |f|
         f << %(I18n.translations || (I18n.translations = {});\n)
-        Utils.strip_keys_with_nil_values(translations).each do |locale, translations_for_locale|
-          f << %(I18n.translations["#{locale}"] = #{translations_for_locale.to_json};\n);
+        translations = Utils.strip_keys_with_nil_values(translations)
+        # Sorting is implemented here for locale and keys to ensure the order of the output is always the same.
+        locales = translations.keys.sort
+        locales.each do |locale|
+          locale_translation = translations[locale]
+          translations = locale_translation.keys.sort
+          translations.each do |key|
+            f << %(I18n.translations["#{locale}"] = #{locale_translation[key].to_json};\n);
+          end
         end
       end
     end
